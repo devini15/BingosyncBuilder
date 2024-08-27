@@ -1,7 +1,9 @@
 /*
 BingoSync JSON File Generator
-Version 1.0
+Version 1.1
 Author: Devin
+
+NEW THIS VERSION: Debug welcome message
 
 This program takes a list of new-line-delimited terms and spits out JSON code usable on bingosync.com
 It is capable of correctly formatting 3×3, 4×4, & 5×5 Bingo boards to look nice and pretty.
@@ -25,7 +27,7 @@ import java.util.List;
 
 public class BingosyncBuilder {
 
-    private static final String VERSION = "1.0"; //If this doesn't match my comment, I'm a clown.
+    private static final String VERSION = "1.1"; //If this doesn't match my comment, I'm a clown.
 
     private static final int DEFAULT_WIDTH = 500; //Width of window
     private static final int DEFAULT_HEIGHT = 510; //Height of window
@@ -52,7 +54,10 @@ public class BingosyncBuilder {
 
     public static void main(String[] args) {
         //Intro message
-        JOptionPane.showMessageDialog(null, "BingoSync JSON Generator\nv" + VERSION + "\n\nBy: Devini15");
+        System.out.println("Bingosync " + VERSION + " debug log\n=======================");
+        System.out.println("If this command prompt is the only thing that opened, something is broken!");
+        JOptionPane.showMessageDialog(null, "Bingosync JSON Generator\nv" + VERSION + "\n\nBy: Devini15");
+
         //Set up layout of main window and display it
         JFrame mainView;
         mainView = setUpFrame();
