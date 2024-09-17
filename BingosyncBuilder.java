@@ -1,9 +1,14 @@
 /*
 BingoSync JSON File Generator
-Version 1.1
+Version 1.2
 Author: Devin
 
-NEW THIS VERSION: Debug welcome message
+NEW THIS VERSION:
+- Added a welcome message to the debugger
+- Line number guide gutter
+- Window is no longer resizable
+- Commented out code that was supposed to force the file to save as a JSON, but actually just prevented you from saving
+  it at all
 
 This program takes a list of new-line-delimited terms and spits out JSON code usable on bingosync.com
 It is capable of correctly formatting 3×3, 4×4, & 5×5 Bingo boards to look nice and pretty.
@@ -27,10 +32,10 @@ import java.util.List;
 
 public class BingosyncBuilder {
 
-    private static final String VERSION = "1.1"; //If this doesn't match my comment, I'm a clown.
+    private static final String VERSION = "1.2"; //If this doesn't match my comment, I'm a clown.
 
     private static final int DEFAULT_WIDTH = 500; //Width of window
-    private static final int DEFAULT_HEIGHT = 510; //Height of window
+    private static final int DEFAULT_HEIGHT = 505; //Height of window
     private static final int FIVE_BY_FIVE = 25; //5×5 Grid size
     private static final int FOUR_BY_FOUR = 16; //4×4 Grid size
     private static final int THREE_BY_THREE = 9; //3×3 Grid size
@@ -45,7 +50,7 @@ public class BingosyncBuilder {
              5, 6, 7,
             10,11,12
     }; //Indexes to populate on a 3×3 Grid
-
+//No plan to support additional grid sizes, 2×2 can be built by only putting items on the 1st, 2nd, 4th, and 5th lines.
     private static final JCheckBox randomizationBox = new JCheckBox("Randomize cell locations"); //Cells will be in a random order if selected
     private static final JTextArea listArea = new JTextArea(); //Area for entering terms, I don't think you can put hint text in these
     private static final JComboBox<String> dropDown = new JComboBox<>(); //Dropdown menu to select grid size
@@ -65,10 +70,21 @@ public class BingosyncBuilder {
         Box hBox1 = Box.createHorizontalBox();
         Box hBox2 = Box.createHorizontalBox();
         Box hBox3 = Box.createHorizontalBox();
+        Box hBox4 = Box.createHorizontalBox();
         JLabel instructionLabel = new JLabel("Input each term on it's own line");
         //these 2 lines are literally just for spacing I have no idea how Java decides where to center things
         hBox3.add(instructionLabel);
         hBox3.add(new JLabel("\t\t\t"));
+        //This code creates a gutter with the numbers 01 through 25 to help keep track of terms
+        StringBuilder lineNumbers = new StringBuilder("<html>");
+        for(int x = 1; x <= 25; x++){
+            if(x < 10) lineNumbers.append(0);
+            lineNumbers.append(x + "<br/>");
+        }
+        lineNumbers.append("</html>"); //TIL that JLabels use html tags instead of escape sequences. Wild.
+        JLabel numberGuides = new JLabel(lineNumbers.toString());
+        numberGuides.setMaximumSize(new Dimension(20, 500));
+        hBox4.add(numberGuides);
         JButton generateButton = new JButton(onGenerateButtonClicked());
         generateButton.setEnabled(true);
         generateButton.setText("GENERATE");
@@ -86,7 +102,9 @@ public class BingosyncBuilder {
         hBox2.add(randomizationBox);
         vBox.add(hBox2);
         vBox.add(hBox3);
-        vBox.add(listArea);
+
+        hBox4.add(listArea);
+        vBox.add(hBox4);
         hBox1.add(generateButton);
         hBox1.add(clearButton);
         vBox.add(hBox1);
@@ -101,9 +119,10 @@ public class BingosyncBuilder {
      */
     private static JFrame setUpFrame(){
         JFrame f = new JFrame();
-        f.setTitle("Custom Bingosync Board Generator" + VERSION);
+        f.setTitle("Custom Bingosync Board Generator " + VERSION);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        f.setResizable(false);
         f.setLocationRelativeTo(null);
         return f;
     }
@@ -136,6 +155,8 @@ public class BingosyncBuilder {
         //If the user input more than the requisite number of terms, the list will be truncated to fit.
         for(int x = 0; x < expectedValue; x++){
             objectives[x] = x < terms.length ? terms[x] : "NULL";
+            //If you skip a line between 2 cells, BingoSync will not generate the board unless I put something there.
+            if(objectives[x].isBlank()) objectives[x] = "NULL";
         }
         //Print complete term list for debug reasons
         for(String o : objectives) System.out.println(o);
@@ -168,9 +189,9 @@ public class BingosyncBuilder {
             //Save as file. User will need to specify extension as JSON or TXT because I cba to implement forcing it atm
             try {
                 JFileChooser outputFileChooser = new JFileChooser();
-                FileNameExtensionFilter jsonFilter = new FileNameExtensionFilter("JSON files (*.json)");
-                outputFileChooser.addChoosableFileFilter(jsonFilter);
-                outputFileChooser.setFileFilter(jsonFilter);
+//                FileNameExtensionFilter jsonFilter = new FileNameExtensionFilter("JSON files (*.json)");
+//                outputFileChooser.addChoosableFileFilter(jsonFilter);
+//                outputFileChooser.setFileFilter(jsonFilter);
                 outputFileChooser.showDialog(null, "Save");
                 File outFile = outputFileChooser.getSelectedFile();
                 FileOutputStream outStream = new FileOutputStream(outFile);
@@ -207,6 +228,8 @@ public class BingosyncBuilder {
     /*
     Remaining 2 methods have 1 line of code each, if you really can't figure out what they do, you can ask me on
     Discord (devini15)
+    onGenerateButtonClicked → calls handleGenerateButton
+    onClearButtonClicked    → sets the text area contents to ""
      */
     private static Action onGenerateButtonClicked(){
         return new Action() {
